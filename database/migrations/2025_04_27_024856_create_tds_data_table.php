@@ -4,31 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
+return new class extends Migration {
     public function up()
     {
-        Schema::create('tds_data', function (Blueprint $table) {
+        Schema::create('sensor_data', function (Blueprint $table) {
             $table->id();
-            $table->decimal('value', 8, 2); // TDS value with 2 decimal places
-            $table->string('sensor_id')->nullable(); // For multiple sensors
-            $table->timestamp('measured_at')->useCurrent(); // When measurement was taken
+            $table->float('temperature');
+            $table->float('humidity');
+            $table->float('tds');
+            $table->timestamp('measured_at')->useCurrent();
             $table->timestamps();
-
-            // Indexes for better performance
-            $table->index('measured_at');
-            $table->index('sensor_id');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down()
     {
-        Schema::dropIfExists('tds_data');
+        Schema::dropIfExists('sensor_data');
     }
 };

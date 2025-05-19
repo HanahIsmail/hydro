@@ -15,19 +15,19 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Ika',
-        //     'email' => 'ika@hidroponik.com',
-        //     'password' => Hash::make('ika123'),
-        //     'roles' => 'Pemilik',
-        // ]);
+        \App\Models\User::factory()->create([
+            'name' => 'Ika',
+            'email' => 'ika@hidroponik.com',
+            'password' => Hash::make('ika123'),
+            'roles' => 'Pemilik',
+        ]);
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Dafa',
-        //     'email' => 'dafa@hidroponik.com',
-        //     'password' => Hash::make('dafa123'),
-        //     'roles' => 'Pengelola',
-        // ]);
+        \App\Models\User::factory()->create([
+            'name' => 'Dafa',
+            'email' => 'dafa@hidroponik.com',
+            'password' => Hash::make('dafa123'),
+            'roles' => 'Pengelola',
+        ]);
 
         $this->call([
             TDSDataSeeder::class,

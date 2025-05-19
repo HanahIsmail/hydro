@@ -2,7 +2,7 @@
 <div class="main-sidebar sidebar-style-2">
     <aside id="sidebar-wrapper">
         <div class="sidebar-brand">
-            <a href="{{ route('home') }}"><i class="fas fa-"></i>Greenhouse Hidroponik</a>
+            <a href="{{ route('home') }}"><i class="fas fa-"></i>HydroNutrient</a>
         </div>
         <div class="sidebar-brand sidebar-brand-sm">
             <a href="{{ route('home') }}">GH</a>

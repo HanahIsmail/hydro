@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\TDSController;
 use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,9 +19,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
+Route::get('/', [WelcomeController::class, 'index'])->name('welcome');
+
+Route::get('/login', function () {
     return view('pages.auth.login');
-});
+})->name('login');
 
 Route::middleware(['auth'])->group(function () {
     // Main dashboard route that handles redirection based on role

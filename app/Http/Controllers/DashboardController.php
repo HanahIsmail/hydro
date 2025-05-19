@@ -1,82 +1,73 @@
 <?php
 
-// app/Http/Controllers/DashboardController.php
-
 namespace App\Http\Controllers;
 
-use App\Models\TDSData;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Models\SensorData;
+use App\Services\ThingSpeakService;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    /**
-     * Menampilkan dashboard berdasarkan role user
-     */
     public function index()
     {
         if (auth()->user()->roles == 'Pemilik') {
             return $this->ownerDashboard();
-        } else {
-            return $this->managerDashboard();
         }
+        return $this->managerDashboard();
     }
 
-    /**
-     * Dashboard untuk Pemilik
-     */
     protected function ownerDashboard()
     {
-        // Data pengelola
+        $service = new ThingSpeakService();
+        $currentData = $service->getLatestData();
+
         $managers = User::where('roles', 'Pengelola')->get();
 
-        // Data statistik TDS
-        $currentTDS = TDSData::latest('measured_at')->first();
-
-        // Data bulanan untuk chart
-        $monthlyData = TDSData::where('measured_at', '>=', now()->subMonths(12))
+        $monthlyData = SensorData::where('measured_at', '>=', now()->subMonths(12))
             ->get()
-            ->groupBy(function($item) {
+            ->groupBy(function ($item) {
                 return $item->measured_at->format('Y-m');
             });
 
         $chartData = [
             'labels' => [],
             'averages' => [],
-            'colors' => []
+            'statuses' => []
         ];
 
         foreach ($monthlyData as $month => $data) {
-            $avg = $data->avg('value');
+            $avgTds = $data->avg('tds');
 
-            $chartData['labels'][] = \Carbon\Carbon::parse($month)->isoFormat('MMM YYYY');
-            $chartData['averages'][] = round($avg, 2);
-            $chartData['colors'][] = $avg < 1000 || $avg > 1200 ? '#fc544b' : '#6777ef';
+            $chartData['labels'][] = Carbon::parse($month)->isoFormat('MMM YYYY');
+            $chartData['averages'][] = round($avgTds, 2);
+            $chartData['statuses'][] = ($avgTds < 1000 || $avgTds > 1200) ? 'danger' : 'success';
         }
 
         return view('pages.pemilik.dashboard', compact(
             'managers',
-            'currentTDS',
+            'currentData',
             'chartData'
         ));
     }
 
-    /**
-     * Dashboard untuk Pengelola
-     */
     protected function managerDashboard()
     {
-        $currentTDS = TDSData::latest('measured_at')->first();
-        $hourlyData = TDSData::where('measured_at', '>=', now()->subHours(24))
+        $service = new ThingSpeakService();
+        $currentData = $service->getLatestData();
+
+        $hourlyData = SensorData::where('measured_at', '>=', now()->subHours(24))
             ->orderBy('measured_at')
             ->get();
 
         $hourlyChart = [
             'labels' => $hourlyData->map(fn($item) => $item->measured_at->format('H:i')),
-            'values' => $hourlyData->pluck('value')
+            'values' => $hourlyData->pluck('tds')
         ];
 
-        return view('pages.pengelola.dashboard', compact('currentTDS', 'hourlyChart'));
+        return view('pages.pengelola.dashboard', compact(
+            'currentData',
+            'hourlyChart'
+        ));
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TDSData;
 use Illuminate\Http\Request;
+use App\Models\SensorData;
 use Carbon\Carbon;
 
 class HistoryController extends Controller
@@ -12,13 +12,13 @@ class HistoryController extends Controller
     {
         $selectedYear = $request->get('year', date('Y'));
 
-        $monthlyData = TDSData::whereYear('measured_at', $selectedYear)
+        $monthlyData = SensorData::whereYear('measured_at', $selectedYear)
             ->get()
             ->groupBy(function($item) {
                 return $item->measured_at->format('Y-m');
             });
 
-        $availableYears = TDSData::selectRaw('YEAR(measured_at) as year')
+        $availableYears = SensorData::selectRaw('YEAR(measured_at) as year')
             ->groupBy('year')
             ->orderBy('year', 'DESC')
             ->pluck('year');
@@ -28,35 +28,44 @@ class HistoryController extends Controller
             'averages' => [],
             'minimums' => [],
             'maximums' => [],
-            'colors' => []
+            'statuses' => []
         ];
 
         foreach ($monthlyData as $month => $data) {
-            $avg = $data->avg('value');
+            $avg = $data->avg('tds');
 
-            $chartData['labels'][] = \Carbon\Carbon::parse($month)->isoFormat('MMM YYYY');
+            $chartData['labels'][] = Carbon::parse($month)->isoFormat('MMM YYYY');
             $chartData['averages'][] = round($avg, 2);
-            $chartData['minimums'][] = $data->min('value');
-            $chartData['maximums'][] = $data->max('value');
-            $chartData['colors'][] = $avg < 1000 || $avg > 1200 ? '#fc544b' : '#6777ef';
+            $chartData['minimums'][] = $data->min('tds');
+            $chartData['maximums'][] = $data->max('tds');
+            $chartData['statuses'][] = ($avg < 1000 || $avg > 1200) ? 'danger' : 'success';
         }
 
-        return view('pages.pemilik.history-monthly', compact('monthlyData', 'chartData', 'availableYears', 'selectedYear'));
+        return view('pages.pemilik.history-monthly', compact(
+            'monthlyData',
+            'chartData',
+            'availableYears',
+            'selectedYear'
+        ));
     }
 
     public function hourly(Request $request)
     {
         $selectedDate = Carbon::parse($request->get('date', now()->format('Y-m-d')));
 
-        $hourlyData = TDSData::whereDate('measured_at', $selectedDate)
+        $hourlyData = SensorData::whereDate('measured_at', $selectedDate)
             ->orderBy('measured_at')
             ->get();
 
         $chartData = [
             'labels' => $hourlyData->map(fn($item) => $item->measured_at->format('H:i')),
-            'values' => $hourlyData->pluck('value')
+            'values' => $hourlyData->pluck('tds')
         ];
 
-        return view('pages.pengelola.history-hourly', compact('hourlyData', 'chartData', 'selectedDate'));
+        return view('pages.pengelola.history-hourly', compact(
+            'hourlyData',
+            'chartData',
+            'selectedDate'
+        ));
     }
 }

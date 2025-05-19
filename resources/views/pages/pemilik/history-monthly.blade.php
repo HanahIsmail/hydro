@@ -1,6 +1,9 @@
+@php
+use Carbon\Carbon;
+@endphp
 @extends('layouts.app')
 
-@section('title', 'Grafik Bulanan TDS')
+@section('title', 'Riwayat Bulanan')
 
 @push('style')
     <!-- CSS Libraries -->
@@ -12,73 +15,69 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>Grafik Bulanan TDS</h1>
+                <h1>Riwayat Bulanan TDS</h1>
                 <div class="section-header-breadcrumb">
                     <div class="breadcrumb-item active"><a href="{{ route('home') }}">Dashboard</a></div>
-                    <div class="breadcrumb-item">Grafik Bulanan</div>
+                    <div class="breadcrumb-item">Riwayat Bulanan</div>
                 </div>
             </div>
 
             <div class="section-body">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4>Data TDS Per Bulan</h4>
-                                <div class="card-header-action">
-                                    <div class="dropdown">
-                                        <a href="#" class="dropdown-toggle btn btn-primary"
-                                            data-toggle="dropdown">Filter Tahun</a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            @foreach($availableYears as $year)
-                                                <a href="?year={{ $year }}"
-                                                    class="dropdown-item">{{ $year }}</a>
-                                            @endforeach
-                                        </div>
-                                    </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Filter Data</h4>
+                        <div class="card-header-action">
+                            <div class="dropdown">
+                                <a href="#" class="dropdown-toggle btn btn-primary" data-toggle="dropdown">
+                                    Tahun {{ $selectedYear }} <i class="fas fa-caret-down"></i>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    @foreach ($availableYears as $year)
+                                        <a href="?year={{ $year }}" class="dropdown-item">{{ $year }}</a>
+                                    @endforeach
                                 </div>
                             </div>
-                            <div class="card-body">
-                                <canvas id="monthlyChart" height="300"></canvas>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="monthlyChart" height="150"></canvas>
 
-                                <div class="mt-5">
-                                    <h5>Rekap Data Bulanan</h5>
-                                    <div class="table-responsive">
-                                        <table class="table table-striped">
-                                            <thead>
-                                                <tr>
-                                                    <th>Bulan</th>
-                                                    <th>Rata-rata</th>
-                                                    <th>Minimum</th>
-                                                    <th>Maksimum</th>
-                                                    <th>Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($monthlyData as $month => $data)
-                                                <tr>
-                                                    <td>{{ \Carbon\Carbon::parse($month)->isoFormat('MMMM YYYY') }}</td>
-                                                    <td>{{ round($data->avg('value'), 2) }}</td>
-                                                    <td>{{ $data->min('value') }}</td>
-                                                    <td>{{ $data->max('value') }}</td>
-                                                    <td>
-                                                        @php
-                                                            $avg = $data->avg('value');
-                                                        @endphp
-                                                        @if($avg < 1000)
-                                                            <span class="badge badge-danger">Rendah</span>
-                                                        @elseif($avg > 1200)
-                                                            <span class="badge badge-danger">Tinggi</span>
-                                                        @else
-                                                            <span class="badge badge-success">Normal</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                        <div class="mt-5">
+                            <h5>Rekap Data Bulanan</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Bulan</th>
+                                            <th>Rata-rata</th>
+                                            <th>Minimum</th>
+                                            <th>Maksimum</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($monthlyData as $month => $data)
+                                            @php
+                                                $avg = $data->avg('tds');
+                                            @endphp
+                                            <tr>
+                                                <td>{{ Carbon::parse($month)->isoFormat('MMMM YYYY') }}</td>
+                                                <td>{{ round($avg, 2) }}</td>
+                                                <td>{{ $data->min('tds') }}</td>
+                                                <td>{{ $data->max('tds') }}</td>
+                                                <td>
+                                                    @if ($avg < 1000)
+                                                        <span class="badge badge-danger">Rendah</span>
+                                                    @elseif($avg > 1200)
+                                                        <span class="badge badge-danger">Tinggi</span>
+                                                    @else
+                                                        <span class="badge badge-success">Normal</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -89,45 +88,40 @@
 @endsection
 
 @push('scripts')
-    <!-- JS Libraries -->
     <script src="{{ asset('library/chart.js/dist/Chart.min.js') }}"></script>
-    <script src="{{ asset('library/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
-
-    <!-- Page Specific JS File -->
     <script>
-        var monthlyChart = new Chart(document.getElementById('monthlyChart').getContext('2d'), {
+        new Chart(document.getElementById('monthlyChart').getContext('2d'), {
             type: 'bar',
             data: {
-                labels: {!! json_encode($chartData['labels']) !!},
+                labels: @json($chartData['labels']),
                 datasets: [{
                     label: 'Rata-rata TDS',
-                    data: {!! json_encode($chartData['averages']) !!},
-                    backgroundColor: {!! json_encode($chartData['colors']) !!},
-                    borderColor: '#6777ef',
+                    data: @json($chartData['averages']),
+                    backgroundColor: @json(array_map(function ($s) {
+                            return $s === 'danger' ? '#fc544b' : '#6777ef';
+                        }, $chartData['statuses'])),
                     borderWidth: 1
                 }]
             },
             options: {
-                responsive: true,
                 scales: {
                     y: {
-                        beginAtZero: false,
                         suggestedMin: 800,
                         suggestedMax: 1400,
-                        ticks: {
-                            stepSize: 100
+                        title: {
+                            display: true,
+                            text: 'Nilai TDS (ppm)'
                         }
                     }
                 },
                 plugins: {
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
-                                return [
-                                    'Rata-rata: ' + context.raw,
-                                    'Min: ' + {!! json_encode($chartData['minimums']) !!}[context.dataIndex],
-                                    'Max: ' + {!! json_encode($chartData['maximums']) !!}[context.dataIndex]
-                                ];
+                            footer: (items) => {
+                                const {
+                                    dataIndex
+                                } = items[0];
+                                return `Min: ${@json($chartData['minimums'])[dataIndex]}\nMax: ${@json($chartData['maximums'])[dataIndex]}`;
                             }
                         }
                     }

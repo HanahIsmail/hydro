@@ -3,36 +3,66 @@
 @section('title', 'Data TDS Sekarang')
 
 @section('main')
-<div class="main-content">
-    <section class="section">
-        <div class="section-header">
-            <h1>Data TDS Sekarang</h1>
-        </div>
+    <div class="main-content">
+        <section class="section">
+            <div class="section-header">
+                <h1>Kondisi Saat Ini</h1>
+            </div>
 
-        <div class="section-body">
-            <div class="card">
-                <div class="card-body">
-                    @if($currentTDS)
-                        <div class="alert @if($currentTDS->value < 1000 || $currentTDS->value > 1200) alert-danger @else alert-success @endif">
-                            <h4>Nilai TDS: {{ $currentTDS->value }}</h4>
-                            <p>Terakhir diperbarui: {{ $currentTDS->created_at }}</p>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>TDS</h4>
+                        </div>
+                        <div class="card-body">
+                            <h1>{{ $currentData['tds'] }} ppm</h1>
+                            <div class="alert alert-{{ $alert['type'] }}">
+                                <i class="fas fa-info-circle"></i> {{ $alert['message'] }}
+                            </div>
+                            <small>Terakhir diperbarui: {{ $currentData['measured_at']->diffForHumans() }}</small>
+                        </div>
+                    </div>
+                </div>
 
-                            @if($currentTDS->value < 1000)
-                                <p><strong>Peringatan!</strong> Nilai TDS terlalu rendah (minimal 1000)</p>
-                            @elseif($currentTDS->value > 1200)
-                                <p><strong>Peringatan!</strong> Nilai TDS terlalu tinggi (maksimal 1200)</p>
-                            @else
-                                <p>Nilai TDS dalam rentang normal (1000-1200)</p>
-                            @endif
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Suhu</h4>
                         </div>
-                    @else
-                        <div class="alert alert-info">
-                            <p>Tidak ada data TDS tersedia</p>
+                        <div class="card-body">
+                            <h1>{{ $currentData['temperature'] }} °C</h1>
+                            <div class="alert alert-info">
+                                <i class="fas fa-thermometer-half"></i> Suhu saat ini
+                            </div>
                         </div>
-                    @endif
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Kelembapan</h4>
+                        </div>
+                        <div class="card-body">
+                            <h1>{{ $currentData['humidity'] }}%</h1>
+                            <div class="alert alert-info">
+                                <i class="fas fa-tint"></i> Kelembapan saat ini
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
-</div>
+
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Rentang normal TDS: 1000-1200 ppm. Segera lakukan penyesuaian nutrisi
+                        jika nilai di luar rentang!
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
 @endsection

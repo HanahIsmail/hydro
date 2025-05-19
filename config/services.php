@@ -30,5 +30,9 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+    'thingspeak' => [
+        'api_key' => env('THINGSPEAK_API_KEY'),
+        'channel_id' => env('THINGSPEAK_CHANNEL_ID'),
+    ],
 
 ];

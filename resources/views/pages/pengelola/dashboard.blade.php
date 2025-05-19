@@ -3,9 +3,7 @@
 @section('title', 'Dashboard Pengelola')
 
 @push('style')
-    <!-- CSS Libraries -->
-    <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('library/chart.js/dist/Chart.min.css') }}">
 @endpush
 
 @section('main')
@@ -15,8 +13,9 @@
                 <h1>Dashboard Pengelola</h1>
             </div>
 
+            <!-- Statistik Utama -->
             <div class="row">
-                <div class="col-lg-6 col-md-6 col-sm-6 col-12">
+                <div class="col-md-4">
                     <div class="card card-statistic-1">
                         <div class="card-icon bg-primary">
                             <i class="fas fa-tint"></i>
@@ -26,83 +25,100 @@
                                 <h4>TDS Terkini</h4>
                             </div>
                             <div class="card-body">
-                                {{ $currentTDS->value ?? 'N/A' }}
+                                {{ $currentData['tds'] }} ppm
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6 col-md-6 col-sm-6 col-12">
+                <div class="col-md-4">
                     <div class="card card-statistic-1">
-                        <div class="card-icon bg-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
+                        <div class="card-icon bg-warning">
+                            <i class="fas fa-thermometer-half"></i>
                         </div>
                         <div class="card-wrap">
                             <div class="card-header">
-                                <h4>Status Nutrisi</h4>
+                                <h4>Temperatur</h4>
                             </div>
                             <div class="card-body">
-                                @if($currentTDS)
-                                    @if($currentTDS->value < 1000)
-                                        Terlalu Rendah
-                                    @elseif($currentTDS->value > 1200)
-                                        Terlalu Tinggi
-                                    @else
-                                        Normal
-                                    @endif
-                                @else
-                                    N/A
-                                @endif
+                                {{ $currentData['temperature'] }} °C
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card card-statistic-1">
+                        <div class="card-icon bg-info">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div class="card-wrap">
+                            <div class="card-header">
+                                <h4>Kelembapan</h4>
+                            </div>
+                            <div class="card-body">
+                                {{ $currentData['humidity'] }}%
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Grafik dan Peringatan -->
             <div class="row">
-                <div class="col-12">
+                <div class="col-md-8">
                     <div class="card">
                         <div class="card-header">
-                            <h4>Grafik TDS 24 Jam Terakhir</h4>
+                            <h4>Grafik 24 Jam Terakhir</h4>
                         </div>
                         <div class="card-body">
                             <canvas id="hourlyChart" height="120"></canvas>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="row">
-                <div class="col-md-8">
-                    <div class="card">
+                    <div class="card mt-4">
                         <div class="card-header">
-                            <h4>Peringatan</h4>
+                            <h4>Status Sistem</h4>
                         </div>
                         <div class="card-body">
-                            @if($currentTDS && ($currentTDS->value < 1000 || $currentTDS->value > 1200))
+                            @if ($currentData['tds'] < 1000)
                                 <div class="alert alert-danger">
-                                    <i class="fas fa-exclamation-triangle"></i> Nilai TDS saat ini
-                                    ({{ $currentTDS->value }}) berada di luar rentang normal (1000-1200)!
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Nilai TDS terlalu rendah! Tambahkan nutrisi.
+                                </div>
+                            @elseif($currentData['tds'] > 1200)
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Nilai TDS terlalu tinggi! Kurangi nutrisi.
                                 </div>
                             @else
                                 <div class="alert alert-success">
-                                    <i class="fas fa-check-circle"></i> Nilai TDS dalam rentang normal.
+                                    <i class="fas fa-check-circle"></i>
+                                    Sistem berjalan normal
                                 </div>
                             @endif
                         </div>
                     </div>
                 </div>
+
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-header">
                             <h4>Aksi Cepat</h4>
                         </div>
                         <div class="card-body">
-                            <a href="{{ route('tds.current') }}" class="btn btn-primary btn-block">
-                                <i class="fas fa-tint"></i> Lihat Data TDS
+                            <a href="{{ route('tds.current') }}" class="btn btn-icon icon-left btn-primary btn-block">
+                                <i class="fas fa-tint"></i> Lihat Detail TDS
                             </a>
-                            <a href="{{ route('hourly.history') }}" class="btn btn-info btn-block mt-2">
+
+                            <a href="{{ route('history.hourly') }}" class="btn btn-icon icon-left btn-info btn-block mt-3">
                                 <i class="fas fa-history"></i> Riwayat Per Jam
                             </a>
+
+                            <div class="mt-4">
+                                <h6>Update Terakhir:</h6>
+                                <p class="text-muted">
+                                    {{ $currentData['measured_at']->format('d M Y H:i') }}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -112,24 +128,24 @@
 @endsection
 
 @push('scripts')
-    <!-- JS Libraries -->
     <script src="{{ asset('library/chart.js/dist/Chart.min.js') }}"></script>
-
-    <!-- Page Specific JS File -->
     <script>
-        var hourlyChart = new Chart(document.getElementById('hourlyChart').getContext('2d'), {
+        // Grafik Per Jam
+        new Chart(document.getElementById('hourlyChart'), {
             type: 'line',
             data: {
-                labels: {!! json_encode($hourlyChart['labels']) !!},
+                labels: @json($hourlyChart['labels']),
                 datasets: [{
                     label: 'Nilai TDS',
-                    data: {!! json_encode($hourlyChart['values']) !!},
+                    data: @json($hourlyChart['values']),
                     borderColor: '#6777ef',
                     backgroundColor: 'rgba(103, 119, 239, 0.2)',
-                    pointBackgroundColor: '#fff',
-                    pointRadius: 3,
-                    borderWidth: 2,
-                    fill: true
+                    fill: true,
+                    tension: 0.1,
+                    pointBackgroundColor: function(context) {
+                        const value = context.dataset.data[context.dataIndex];
+                        return (value < 1000 || value > 1200) ? '#fc544b' : '#6777ef';
+                    }
                 }]
             },
             options: {
@@ -138,17 +154,9 @@
                     y: {
                         suggestedMin: 800,
                         suggestedMax: 1400,
-                        ticks: {
-                            stepSize: 100
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return 'TDS: ' + context.raw;
-                            }
+                        title: {
+                            display: true,
+                            text: 'Nilai TDS (ppm)'
                         }
                     }
                 }
