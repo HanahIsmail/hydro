@@ -18,8 +18,8 @@ class SensorData extends Model
 
     public function getStatusAttribute()
     {
-        if ($this->tds < 1000) return 'danger';
-        if ($this->tds > 1200) return 'danger';
+        if ($this->tds < getTdsMin()) return 'danger';
+        if ($this->tds > getTdsMax()) return 'danger';
         return 'success';
     }
 

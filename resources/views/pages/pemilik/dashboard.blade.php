@@ -85,7 +85,7 @@
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     TDS
                                     <span
-                                        class="badge badge-{{ $currentData['tds'] < 1000 || $currentData['tds'] > 1200 ? 'danger' : 'success' }}">
+                                        class="badge badge-{{ $currentData['tds'] < $tdsMin || $currentData['tds'] > $tdsMax ? 'danger' : 'success' }}">
                                         {{ $currentData['tds'] }} ppm
                                     </span>
                                 </li>
@@ -142,8 +142,8 @@
                 responsive: true,
                 scales: {
                     y: {
-                        suggestedMin: 800,
-                        suggestedMax: 1400,
+                        suggestedMin: {{ $tdsMin - 200 }},
+                        suggestedMax: {{ $tdsMax + 200 }},
                         title: {
                             display: true,
                             text: 'Nilai TDS (ppm)'

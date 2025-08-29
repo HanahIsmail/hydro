@@ -1,5 +1,5 @@
 @php
-use Carbon\Carbon;
+    use Carbon\Carbon;
 @endphp
 @extends('layouts.app')
 
@@ -66,9 +66,9 @@ use Carbon\Carbon;
                                                 <td>{{ $data->min('tds') }}</td>
                                                 <td>{{ $data->max('tds') }}</td>
                                                 <td>
-                                                    @if ($avg < 1000)
+                                                    @if ($avg < $tdsMin)
                                                         <span class="badge badge-danger">Rendah</span>
-                                                    @elseif($avg > 1200)
+                                                    @elseif($avg > $tdsMax)
                                                         <span class="badge badge-danger">Tinggi</span>
                                                     @else
                                                         <span class="badge badge-success">Normal</span>
@@ -106,8 +106,8 @@ use Carbon\Carbon;
             options: {
                 scales: {
                     y: {
-                        suggestedMin: 800,
-                        suggestedMax: 1400,
+                        suggestedMin: {{ $tdsMin - 200 }},
+                        suggestedMax: {{ $tdsMax + 200 }},
                         title: {
                             display: true,
                             text: 'Nilai TDS (ppm)'

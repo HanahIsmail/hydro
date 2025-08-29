@@ -94,15 +94,16 @@
                     tension: 0.1
                 }, {
                     type: 'line',
-                    label: 'Batas Normal',
-                    data: Array(@json($chartData['labels']).length).fill(1000),
+                    label: 'Batas Normal Bawah',
+                    data: Array(@json($chartData['labels']).length).fill({{ $tdsMin }}),
                     borderColor: '#47c363',
                     borderDash: [5, 5],
                     borderWidth: 1,
                     pointRadius: 0
                 }, {
                     type: 'line',
-                    data: Array(@json($chartData['labels']).length).fill(1200),
+                    label: 'Batas Normal Atas',
+                    data: Array(@json($chartData['labels']).length).fill({{ $tdsMax }}),
                     borderColor: '#47c363',
                     borderDash: [5, 5],
                     borderWidth: 1,
@@ -112,8 +113,8 @@
             options: {
                 scales: {
                     y: {
-                        suggestedMin: 800,
-                        suggestedMax: 1400,
+                        suggestedMin: {{ $tdsMin - 200 }},
+                        suggestedMax: {{ $tdsMax + 200 }},
                         title: {
                             display: true,
                             text: 'Nilai TDS (ppm)'

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\SensorData;
+use App\Models\Setting;
 use Carbon\Carbon;
 
 class HistoryController extends Controller
@@ -14,7 +15,7 @@ class HistoryController extends Controller
 
         $monthlyData = SensorData::whereYear('measured_at', $selectedYear)
             ->get()
-            ->groupBy(function($item) {
+            ->groupBy(function ($item) {
                 return $item->measured_at->format('Y-m');
             });
 
@@ -22,6 +23,10 @@ class HistoryController extends Controller
             ->groupBy('year')
             ->orderBy('year', 'DESC')
             ->pluck('year');
+
+        // Ambil nilai TDS dari database
+        $tdsMin = Setting::where('key', 'tds_min')->first()->value ?? 1000;
+        $tdsMax = Setting::where('key', 'tds_max')->first()->value ?? 1200;
 
         $chartData = [
             'labels' => [],
@@ -38,14 +43,16 @@ class HistoryController extends Controller
             $chartData['averages'][] = round($avg, 2);
             $chartData['minimums'][] = $data->min('tds');
             $chartData['maximums'][] = $data->max('tds');
-            $chartData['statuses'][] = ($avg < 1000 || $avg > 1200) ? 'danger' : 'success';
+            $chartData['statuses'][] = ($avg < $tdsMin || $avg > $tdsMax) ? 'danger' : 'success';
         }
 
         return view('pages.pemilik.history-monthly', compact(
             'monthlyData',
             'chartData',
             'availableYears',
-            'selectedYear'
+            'selectedYear',
+            'tdsMin',
+            'tdsMax'
         ));
     }
 
@@ -57,6 +64,11 @@ class HistoryController extends Controller
             ->orderBy('measured_at')
             ->get();
 
+        // Ambil nilai TDS dari database
+        $tdsMin = Setting::where('key', 'tds_min')->first()->value ?? 1000;
+        $tdsMax = Setting::where('key', 'tds_max')->first()->value ?? 1200;
+
+
         $chartData = [
             'labels' => $hourlyData->map(fn($item) => $item->measured_at->format('H:i')),
             'values' => $hourlyData->pluck('tds')
@@ -65,7 +77,9 @@ class HistoryController extends Controller
         return view('pages.pengelola.history-hourly', compact(
             'hourlyData',
             'chartData',
-            'selectedDate'
+            'selectedDate',
+            'tdsMin',
+            'tdsMax'
         ));
     }
 }

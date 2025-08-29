@@ -6,6 +6,7 @@ use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\TDSController;
 use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\SettingController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,6 +36,8 @@ Route::middleware(['auth'])->group(function () {
         // Route::get('user', [UserController::class, 'index'])->name('user.index');
         Route::resource('user', UserController::class);
         Route::get('monthly-history', [HistoryController::class, 'monthly'])->name('monthly.history');
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
     });
 
     // Manager-specific routes

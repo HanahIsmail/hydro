@@ -79,12 +79,12 @@
                             <h4>Status Sistem</h4>
                         </div>
                         <div class="card-body">
-                            @if ($currentData['tds'] < 1000)
+                            @if ($currentData['tds'] < $tdsMin)
                                 <div class="alert alert-danger">
                                     <i class="fas fa-exclamation-triangle"></i>
                                     Nilai TDS terlalu rendah! Tambahkan nutrisi.
                                 </div>
-                            @elseif($currentData['tds'] > 1200)
+                            @elseif($currentData['tds'] > $tdsMax)
                                 <div class="alert alert-danger">
                                     <i class="fas fa-exclamation-triangle"></i>
                                     Nilai TDS terlalu tinggi! Kurangi nutrisi.
@@ -152,8 +152,8 @@
                 responsive: true,
                 scales: {
                     y: {
-                        suggestedMin: 800,
-                        suggestedMax: 1400,
+                        suggestedMin: {{ $tdsMin - 200 }},
+                        suggestedMax: {{ $tdsMax + 200 }},
                         title: {
                             display: true,
                             text: 'Nilai TDS (ppm)'

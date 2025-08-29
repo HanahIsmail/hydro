@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\SensorData;
+use App\Models\Setting;
 use App\Services\ThingSpeakService;
 use Carbon\Carbon;
 
@@ -30,6 +31,10 @@ class DashboardController extends Controller
                 return $item->measured_at->format('Y-m');
             });
 
+        // Ambil nilai TDS dari database
+        $tdsMin = Setting::where('key', 'tds_min')->first()->value ?? 1000;
+        $tdsMax = Setting::where('key', 'tds_max')->first()->value ?? 1200;
+
         $chartData = [
             'labels' => [],
             'averages' => [],
@@ -41,13 +46,15 @@ class DashboardController extends Controller
 
             $chartData['labels'][] = Carbon::parse($month)->isoFormat('MMM YYYY');
             $chartData['averages'][] = round($avgTds, 2);
-            $chartData['statuses'][] = ($avgTds < 1000 || $avgTds > 1200) ? 'danger' : 'success';
+            $chartData['statuses'][] = ($avgTds < $tdsMin || $avgTds > $tdsMax) ? 'danger' : 'success';
         }
 
         return view('pages.pemilik.dashboard', compact(
             'managers',
             'currentData',
-            'chartData'
+            'chartData',
+            'tdsMin',
+            'tdsMax'
         ));
     }
 
@@ -60,6 +67,10 @@ class DashboardController extends Controller
             ->orderBy('measured_at')
             ->get();
 
+        // Ambil nilai TDS dari database
+        $tdsMin = Setting::where('key', 'tds_min')->first()->value ?? 1000;
+        $tdsMax = Setting::where('key', 'tds_max')->first()->value ?? 1200;
+
         $hourlyChart = [
             'labels' => $hourlyData->map(fn($item) => $item->measured_at->format('H:i')),
             'values' => $hourlyData->pluck('tds')
@@ -67,7 +78,9 @@ class DashboardController extends Controller
 
         return view('pages.pengelola.dashboard', compact(
             'currentData',
-            'hourlyChart'
+            'hourlyChart',
+            'tdsMin',
+            'tdsMax'
         ));
     }
 }

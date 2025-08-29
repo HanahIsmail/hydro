@@ -58,7 +58,7 @@
                 <div class="col-md-12">
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle"></i>
-                        Rentang normal TDS: 1000-1200 ppm. Segera lakukan penyesuaian nutrisi
+                        Rentang normal TDS: {{ $tdsMin }}-{{ $tdsMax }} ppm. Segera lakukan penyesuaian nutrisi
                         jika nilai di luar rentang!
                     </div>
                 </div>
